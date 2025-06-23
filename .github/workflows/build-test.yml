@@ -1,0 +1,36 @@
+name: Java CI with Maven
+
+# Eventi che attivano il workflow
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    # Sistema operativo su cui eseguire il workflow
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Fa il "checkout" del tuo codice
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 8
+        uses: actions/setup-java@v4
+        with:
+          java-version: '8'
+          distribution: 'temurin'
+
+      # 3. Esegue il build e i test con Maven
+      - name: Build and test with Maven
+        run: mvn -B package --file pom.xml
+
+      # (Opzionale, ma utile) Cache delle dipendenze di Maven per velocizzare i build futuri
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
