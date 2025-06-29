@@ -37,16 +37,6 @@
       <groupId>org.apache.bookkeeper.metadata.drivers</groupId>
       <artifactId>jetcd-core-shaded</artifactId>
       <version>${project.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>io.etcd</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>io.vertx</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
 
     <dependency>
