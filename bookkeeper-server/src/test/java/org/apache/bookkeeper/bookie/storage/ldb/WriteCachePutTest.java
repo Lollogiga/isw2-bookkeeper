@@ -68,11 +68,6 @@ public class WriteCachePutTest {
         }
     }
 
-    private static ByteBuf createReleasedBuffer() {
-        ByteBuf buffer = Unpooled.buffer(128).writeBytes(new byte[128]);
-        buffer.release();
-        return buffer;
-    }
 
     @Parameterized.Parameters(name = "{index}: {0}")
     public static Collection<Object[]> data() {
@@ -91,7 +86,10 @@ public class WriteCachePutTest {
                 {"Put con segmento quasi pieno", 1, 1, Unpooled.buffer(64 + 1).writeBytes(new byte[64+1]), CacheState.SEGMENT_ALMOST_FULL, true, MAX_SEGMENT_SIZE + 1, 2},
                 {"Put con aggiornamento di LastEntry", LEDGER_ID_TEST , ENTRY_ID_TEST+1, Unpooled.buffer(MAX_SEGMENT_SIZE).writeBytes(new byte[MAX_SEGMENT_SIZE]), CacheState.OUT_OF_ORDER, true, MAX_SEGMENT_SIZE*2, 2},
                 {"Put senza aggiornamento di LastEntry", LEDGER_ID_TEST, ENTRY_ID_TEST-1, Unpooled.buffer(MAX_SEGMENT_SIZE).writeBytes(new byte[MAX_SEGMENT_SIZE]), CacheState.OUT_OF_ORDER, true, MAX_SEGMENT_SIZE*2, 2},
-                {"Put con coppia (ledgerID, entryId) già esistente", LEDGER_ID_TEST, ENTRY_ID_TEST, Unpooled.buffer(MAX_SEGMENT_SIZE).writeBytes(new byte[MAX_SEGMENT_SIZE]), CacheState.KNOW_ENTRY, true, MAX_SEGMENT_SIZE*2, 2}
+                {"Put con coppia (ledgerID, entryId) già esistente", LEDGER_ID_TEST, ENTRY_ID_TEST, Unpooled.buffer(MAX_SEGMENT_SIZE).writeBytes(new byte[MAX_SEGMENT_SIZE]), CacheState.KNOW_ENTRY, true, MAX_SEGMENT_SIZE*2, 2},
+
+                //Nuovo test dopo jacoco:
+                {"Put con primo aggiornamento di lastEntryMap", 99, 1, Unpooled.buffer(64).writeBytes(new byte[64]), CacheState.EMPTY, true, 64, 1},
         });
     }
 
@@ -177,4 +175,5 @@ public class WriteCachePutTest {
                     expectedException.isAssignableFrom(e.getClass()));
         }
     }
+
 }
