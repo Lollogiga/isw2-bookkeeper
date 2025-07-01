@@ -4,5 +4,6 @@ public enum Cases {
     START_POSITION_BIG,
     WRITEBUFFER_NOTEMPTY,
     NULL,
-    DEFAULT
+    DEFAULT,
+    EOF_READ
 }

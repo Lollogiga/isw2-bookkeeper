@@ -11,6 +11,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.FileChannel;
 import java.nio.channels.NonReadableChannelException;
@@ -25,6 +26,7 @@ import static org.mockito.Mockito.*;
 
 @RunWith(Parameterized.class)
 public class BufferedChannelReadTest {
+    private final String description;
     private BufferedChannel bufferedChannel;
     private final ByteBuf dest;
     private final long pos;
@@ -39,7 +41,8 @@ public class BufferedChannelReadTest {
     private final Cases env;
     private ByteBufAllocator allocator;
 
-    public BufferedChannelReadTest(ByteBuf dest, long pos, int length, Object output, FileStatus fileConstraints, Cases env) {
+    public BufferedChannelReadTest(String description, ByteBuf dest, long pos, int length, Object output, FileStatus fileConstraints, Cases env) {
+        this.description = description;
         this.dest = dest;
         this.pos = pos;
         this.length = length;
@@ -58,32 +61,34 @@ public class BufferedChannelReadTest {
         // test file size is 512 bytes
         return Arrays.asList(new Object[][] {
                 //------INVALID INPUT TESTS---------
-                { Unpooled.directBuffer(1024), -1, 1, IllegalArgumentException.class, FileStatus.READ_WRITE, Cases.DEFAULT },
-                { null, 0, 1, NullPointerException.class, FileStatus.READ_WRITE, Cases.DEFAULT },
-                {Unpooled.buffer(0), 0, 1, IllegalArgumentException.class, FileStatus.READ_WRITE, Cases.DEFAULT },
+                {"Read Test: Invalid pos", Unpooled.directBuffer(1024), -1, 1, IllegalArgumentException.class, FileStatus.READ_WRITE, Cases.DEFAULT },
+                {"Read Test: Null dest", null, 0, 1, NullPointerException.class, FileStatus.READ_WRITE, Cases.DEFAULT },
+
+                {"Read Test: invalid dest", Unpooled.buffer(0), 0, 1, IllegalArgumentException.class, FileStatus.READ_WRITE, Cases.DEFAULT },
 
                 // -----VALID INPUT TESTS--------
-                { Unpooled.directBuffer(1024), 0, -1, 0, FileStatus.READ_WRITE, Cases.DEFAULT},
+                {"Read Test: invalid length", Unpooled.directBuffer(1024), 0, -1, 0, FileStatus.READ_WRITE, Cases.DEFAULT},
 
 
-                { Unpooled.directBuffer(64), 0, 1, 64, FileStatus.READ_WRITE, Cases.START_POSITION_BIG },
-                { Unpooled.directBuffer(64), 0, 0, 0, FileStatus.READ_WRITE, Cases.WRITEBUFFER_NOTEMPTY },
+                {"Read Test: cache miss (Start_position alto)", Unpooled.directBuffer(64), 0, 1, 64, FileStatus.READ_WRITE, Cases.START_POSITION_BIG },
+                {"Read Test: lettura di 0 byte", Unpooled.directBuffer(64), 0, 0, 0, FileStatus.READ_WRITE, Cases.WRITEBUFFER_NOTEMPTY },
 
-                { Unpooled.directBuffer(64), 1, 1, 63, FileStatus.READ_WRITE, Cases.WRITEBUFFER_NOTEMPTY },
-                { Unpooled.directBuffer(64), 1, 0, 0, FileStatus.READ_WRITE, Cases.WRITEBUFFER_NOTEMPTY },
-
+                {"Read Test: lettura dal write buffer (cache hit)", Unpooled.directBuffer(64), 1, 1, 63, FileStatus.READ_WRITE, Cases.WRITEBUFFER_NOTEMPTY },
 
 
-                { Unpooled.directBuffer(1024), 256, 0, IOException.class, FileStatus.READ_WRITE, Cases.START_POSITION_BIG },
-                { Unpooled.directBuffer(1024), 255, 1, 1, FileStatus.READ_WRITE, Cases.START_POSITION_BIG },
-                { Unpooled.directBuffer(1024), 255, 0, 0, FileStatus.READ_WRITE, Cases.START_POSITION_BIG },
+                { "Read Test: lettura esattamente alla fine del file", Unpooled.directBuffer(1024), 256, 0, IOException.class, FileStatus.READ_WRITE, Cases.START_POSITION_BIG },
+                { "Read test: lettura dell'ultimo byte del file", Unpooled.directBuffer(1024), 255, 1, 1, FileStatus.READ_WRITE, Cases.START_POSITION_BIG },
+                {"Read Test: lettura di zero byte sull'ultimo byte del file", Unpooled.directBuffer(1024), 255, 0, 0, FileStatus.READ_WRITE, Cases.START_POSITION_BIG },
 
                 //-----TEST ON FILESTATUS:
-                { Unpooled.directBuffer(64), 0, 1, 64, FileStatus.ONLY_WRITE, Cases.WRITEBUFFER_NOTEMPTY},
-                { Unpooled.directBuffer(64), 0, 1, NonReadableChannelException.class, FileStatus.ONLY_WRITE, Cases.START_POSITION_BIG },
-                { Unpooled.directBuffer(64), 0, 1, ClosedChannelException.class, FileStatus.CLOSE_CHANNEL, Cases.START_POSITION_BIG },
+                { "Read Test: lettura dal buffer con file in sola scrittura", Unpooled.directBuffer(64), 0, 1, 64, FileStatus.ONLY_WRITE, Cases.WRITEBUFFER_NOTEMPTY},
+                { "Read Test: lettura da file con file in sola scrittura", Unpooled.directBuffer(64), 0, 1, NonReadableChannelException.class, FileStatus.ONLY_WRITE, Cases.START_POSITION_BIG },
+                { "Read Test: lettura da un canale chiuso", Unpooled.directBuffer(64), 0, 1, ClosedChannelException.class, FileStatus.CLOSE_CHANNEL, Cases.START_POSITION_BIG },
 
-
+                //Test after jacoco:
+                {"Read Test: bytesToCopy == 0", Unpooled.directBuffer(64), 64, 1, IOException.class, FileStatus.READ_WRITE, Cases.WRITEBUFFER_NOTEMPTY },
+                {"Read Test: Null writeBuffer and writeBufferPosition.get()<=pos", Unpooled.directBuffer(1024), 0, 1, 0, FileStatus.READ_WRITE, Cases.NULL},
+                {"Read Test: readBytes <= 0", Unpooled.directBuffer(128), 0L, 1, IOException.class, FileStatus.READ_WRITE, Cases.EOF_READ},
 
 
         });
@@ -92,14 +97,20 @@ public class BufferedChannelReadTest {
     @Before
     public void setUp() throws IOException {
         int capacity = 1024;
-        setParam(fileConstraints);
 
-        /* set up file and write 256 bytes on it */
-        if (!fileConstraints.equals(FileStatus.EMPTY)) {
-            ByteBuf buf = Unpooled.buffer(capacity);
-            buf.writeBytes(new byte[256]);
-            fc.write(buf.nioBuffer());
-            fc.position(0);
+        if(env == Cases.EOF_READ) {
+            fc = mock(FileChannel.class);
+            when(fc.position()).thenReturn(0L);
+        }else {
+            setParam(fileConstraints);
+
+            /* set up file and write 256 bytes on it */
+            if (!fileConstraints.equals(FileStatus.EMPTY)) {
+                ByteBuf buf = Unpooled.buffer(capacity);
+                buf.writeBytes(new byte[256]);
+                fc.write(buf.nioBuffer());
+                fc.position(0);
+            }
         }
 
         if (!env.equals(Cases.NULL)) {
@@ -159,7 +170,7 @@ public class BufferedChannelReadTest {
         }
     }
 
-    private void setEnv(Cases env) {
+    private void setEnv(Cases env) throws IOException {
         switch (env) {
             case START_POSITION_BIG:
                 /* Or you can move cursor in file, but is more simple in this way */
@@ -171,6 +182,10 @@ public class BufferedChannelReadTest {
             case NULL:
                 allocator = spy(UnpooledByteBufAllocator.DEFAULT);
                 when(allocator.directBuffer(anyInt())).thenReturn(null);
+                break;
+            case EOF_READ:
+                bufferedChannel.writeBufferStartPosition.set(1024);
+                when(fc.read(any(ByteBuffer.class), eq(0L))).thenReturn(-1);
                 break;
         }
     }
