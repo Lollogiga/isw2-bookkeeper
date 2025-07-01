@@ -387,20 +387,34 @@
       </activation>
       <build>
         <plugins>
+
+          <!-- PITEST solo per test manuali -->
           <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <version>3.2.5</version>
+            <groupId>org.pitest</groupId>
+            <artifactId>pitest-maven</artifactId>
+            <version>1.14.0</version>
             <configuration>
-              <includes>
-                <include>**/*Test.java</include>
-              </includes>
-              <excludes>
-                <exclude>**/*LLMTest.java</exclude>
-              </excludes>
-              <argLine>@{argLine}</argLine>
+              <targetClasses>
+                <param>org.apache.bookkeeper.bookie.BufferedChannel</param>
+                <param>org.apache.bookkeeper.bookie.storage.ldb.WriteCache</param>
+              </targetClasses>
+              <targetTests>
+                <param>**.*Test</param>
+              </targetTests>
+              <excludedTestClasses>
+                <param>**.*LLMTest</param>
+              </excludedTestClasses>
+              <mutators>
+                <mutator>DEFAULTS</mutator>
+              </mutators>
+              <outputFormats>
+                <param>HTML</param>
+              </outputFormats>
+              <verbose>true</verbose>
             </configuration>
           </plugin>
+
+          <!-- Jacoco per test manuali -->
           <plugin>
             <groupId>org.jacoco</groupId>
             <artifactId>jacoco-maven-plugin</artifactId>
@@ -433,6 +447,23 @@
               </execution>
             </executions>
           </plugin>
+
+          <!-- Solo test manuali -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <version>3.2.5</version>
+            <configuration>
+              <includes>
+                <include>**/*Test.java</include>
+              </includes>
+              <excludes>
+                <exclude>**/*LLMTest.java</exclude>
+              </excludes>
+              <argLine>@{argLine}</argLine>
+            </configuration>
+          </plugin>
+
         </plugins>
       </build>
     </profile>
@@ -441,17 +472,34 @@
       <id>llm-tests</id>
       <build>
         <plugins>
+
+          <!-- PITEST solo per test LLM -->
           <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <version>3.2.5</version>
+            <groupId>org.pitest</groupId>
+            <artifactId>pitest-maven</artifactId>
+            <version>1.14.0</version>
             <configuration>
-              <includes>
-                <include>**/*LLMTest.java</include>
-              </includes>
-              <argLine>@{argLineLLM}</argLine>
+              <targetClasses>
+                <param>org.apache.bookkeeper.bookie.BufferedChannel</param>
+                <param>org.apache.bookkeeper.bookie.storage.ldb.WriteCache</param>
+              </targetClasses>
+              <targetTests>
+                <param>**.*LLMTest</param>
+              </targetTests>
+              <excludedTestClasses>
+                <param>**.*Test</param>
+              </excludedTestClasses>
+              <mutators>
+                <mutator>DEFAULTS</mutator>
+              </mutators>
+              <outputFormats>
+                <param>HTML</param>
+              </outputFormats>
+              <verbose>true</verbose>
             </configuration>
           </plugin>
+
+          <!-- Jacoco per test LLM -->
           <plugin>
             <groupId>org.jacoco</groupId>
             <artifactId>jacoco-maven-plugin</artifactId>
@@ -484,9 +532,24 @@
               </execution>
             </executions>
           </plugin>
+
+          <!-- Solo test LLM -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <version>3.2.5</version>
+            <configuration>
+              <includes>
+                <include>**/*LLMTest.java</include>
+              </includes>
+              <argLine>@{argLineLLM}</argLine>
+            </configuration>
+          </plugin>
+
         </plugins>
       </build>
     </profile>
+
   </profiles>
 
 

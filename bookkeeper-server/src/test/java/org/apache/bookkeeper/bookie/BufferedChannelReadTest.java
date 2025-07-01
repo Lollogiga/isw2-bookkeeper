@@ -90,6 +90,8 @@ public class BufferedChannelReadTest {
                 {"Read Test: Null writeBuffer and writeBufferPosition.get()<=pos", Unpooled.directBuffer(1024), 0, 1, 0, FileStatus.READ_WRITE, Cases.NULL},
                 {"Read Test: readBytes <= 0", Unpooled.directBuffer(128), 0L, 1, IOException.class, FileStatus.READ_WRITE, Cases.EOF_READ},
 
+                //Test mutazione:
+                {"Test: writableBytes == length, deve leggere senza eccezione", Unpooled.buffer(64), 0, 64, 64, FileStatus.READ_WRITE, Cases.WRITEBUFFER_NOTEMPTY },
 
         });
     }
@@ -185,7 +187,8 @@ public class BufferedChannelReadTest {
                 break;
             case EOF_READ:
                 bufferedChannel.writeBufferStartPosition.set(1024);
-                when(fc.read(any(ByteBuffer.class), eq(0L))).thenReturn(-1);
+                //Modify for mutation
+                when(fc.read(any(ByteBuffer.class), eq(0))).thenReturn(0);
                 break;
         }
     }

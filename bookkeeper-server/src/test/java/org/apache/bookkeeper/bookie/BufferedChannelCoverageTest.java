@@ -1,5 +1,6 @@
 package org.apache.bookkeeper.bookie;
 
+import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.buffer.Unpooled;
 import io.netty.buffer.UnpooledByteBufAllocator;
 import org.junit.After;
@@ -14,6 +15,7 @@ import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
+import static org.mockito.Mockito.*;
 
 
 
@@ -74,6 +76,7 @@ public class BufferedChannelCoverageTest {
 
     }
 
+    /*
     @Test
     public void testClear() throws IOException {
         bufferedChannel.write(Unpooled.buffer().writeBytes(new byte[32]));
@@ -82,13 +85,48 @@ public class BufferedChannelCoverageTest {
 
         bufferedChannel.clear();
 
-        /*Mi aspettavo che clear resettasse anche getUnpersistedBytes, ma resetta solo il buffer*/
+        Mi aspettavo che clear resettasse anche getUnpersistedBytes, ma resetta solo il buffer
         //Assert.assertEquals(0, bufferedChannel.getUnpersistedBytes());
         Assert.assertEquals(0, bufferedChannel.getNumOfBytesInWriteBuffer());
 
+    }
+    */
 
+    /*Modify for mutation*/
+    @Test
+    public void testClear() throws IOException {
+        // Scrivo dati nel writeBuffer
+        bufferedChannel.write(Unpooled.buffer().writeBytes(new byte[32]));
+
+        // Forzo il flush per scrivere i dati su disco
+        bufferedChannel.flush();
+
+        // Ora leggo da posizione 0, i dati sono presenti nel file
+        bufferedChannel.read(Unpooled.buffer(64), 0, 32);
+
+        // Ora il readBuffer dovrebbe contenere dati (non vuoto)
+        Assert.assertTrue(bufferedChannel.readBuffer.readableBytes() > 0);
+
+        // Chiamo clear()
+        bufferedChannel.clear();
+
+        // Verifico che il readBuffer sia svuotato
+        Assert.assertEquals(0, bufferedChannel.readBuffer.readableBytes());
+
+        // Verifico che anche il writeBuffer sia svuotato
+        Assert.assertEquals(0, bufferedChannel.getNumOfBytesInWriteBuffer());
     }
 
+    //Test added for mutation:
+    @Test
+    public void testWriteBufferStartPositionIsSetOnConstruction() throws IOException {
+        FileChannel mockFc = mock(FileChannel.class);
+        when(mockFc.position()).thenReturn(1024L);
+
+        BufferedChannel bufferedChannel = new BufferedChannel(PooledByteBufAllocator.DEFAULT, mockFc, 1000, 1000, 100);
+
+        Assert.assertEquals(1024L, bufferedChannel.writeBufferStartPosition.get());
+    }
 
 
 
