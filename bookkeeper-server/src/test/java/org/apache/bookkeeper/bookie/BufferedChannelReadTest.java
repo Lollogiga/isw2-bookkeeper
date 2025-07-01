@@ -91,7 +91,7 @@ public class BufferedChannelReadTest {
                 {"Read Test: readBytes <= 0", Unpooled.directBuffer(128), 0L, 1, IOException.class, FileStatus.READ_WRITE, Cases.EOF_READ},
 
                 //Test mutazione:
-                {"Test: writableBytes == length, deve leggere senza eccezione", Unpooled.buffer(64), 0, 64, 64, FileStatus.READ_WRITE, Cases.WRITEBUFFER_NOTEMPTY },
+                {"Read Test: writableBytes == length (Riga 246)", Unpooled.buffer(64), 0, 64, 64, FileStatus.READ_WRITE, Cases.WRITEBUFFER_NOTEMPTY },
 
         });
     }

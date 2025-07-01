@@ -92,7 +92,8 @@ public class BufferedChannelCoverageTest {
     }
     */
 
-    /*Modify for mutation*/
+    /*Modify for mutation (Riga 292)*/
+
     @Test
     public void testClear() throws IOException {
         // Scrivo dati nel writeBuffer
@@ -117,7 +118,7 @@ public class BufferedChannelCoverageTest {
         Assert.assertEquals(0, bufferedChannel.getNumOfBytesInWriteBuffer());
     }
 
-    //Test added for mutation:
+    //Test added for mutation (Riga 92):
     @Test
     public void testWriteBufferStartPositionIsSetOnConstruction() throws IOException {
         FileChannel mockFc = mock(FileChannel.class);

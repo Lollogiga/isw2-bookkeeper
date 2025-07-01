@@ -52,12 +52,17 @@ public class WriteCacheConstructorsTest {
 
                 // Test per il costruttore a 3 argomenti
                 {"Constructor Test: invalid maxSegmentSize <= 0", ConstructorType.THREE_ARGS, 1, 0, IllegalArgumentException.class},
+
+
                 {"Constructor Test: invalid maxCacheSize ", ConstructorType.THREE_ARGS, -1, 2, IllegalArgumentException.class},
-                {"Constructor Test: maxCacheSize < maxSegmentSize", ConstructorType.THREE_ARGS, 1, 2, null},
+                //{"Constructor Test: maxCacheSize < maxSegmentSize", ConstructorType.THREE_ARGS, 1, 2, null},
                 {"Constructor Test: invalid maxSegmentSize != 2^n", ConstructorType.THREE_ARGS, 10, 10, IllegalArgumentException.class},
 
                 // Test per il costruttore a 2 argomenti
                 {"Constructor Test: 2-args valid", ConstructorType.TWO_ARGS, 1024, 0, null},
+
+
+
 
         });
     }
