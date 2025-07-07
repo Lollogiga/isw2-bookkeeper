@@ -25,7 +25,7 @@ import static org.mockito.Mockito.*;
  * ma anche un'ampia gamma di edge case, input invalidi e sequenze operative complesse.
  */
 @RunWith(MockitoJUnitRunner.class)
-public class BufferedChannelLLMTest {
+public class BufferedChannelGuidedToTLLMTest {
 
     private static final int BUFFER_CAPACITY = 1024;
     private static final long UNPERSISTED_BOUND = 2048;
