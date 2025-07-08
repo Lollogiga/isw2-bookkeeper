@@ -70,9 +70,9 @@ public class WriteCacheForEachTest {
                 //Verifichiamo il corretto ordinamento
                 {"forEach con più entry", ForEachCacheState.UNORDERED_ENTRIES, Arrays.asList(new long[]{LEDGER_ID, ENTER_ID}, new long[]{LEDGER_ID, ENTER_ID+1}, new long[]{LEDGER_ID+1, ENTER_ID})},
 
-                {"forEach entry cancellata", ForEachCacheState.WITH_DELETED_LEDGER, Collections.singletonList(new long[]{LEDGER_ID, ENTER_ID})},
+                {"forEach ledger cancellato", ForEachCacheState.WITH_DELETED_LEDGER, Collections.singletonList(new long[]{LEDGER_ID, ENTER_ID})},
                 {"forEach propaga l'IOException dal consumer", ForEachCacheState.CONSUMER_THROWS_IOEXCEPTION, IOException.class},
-                {"forEach entry duplicata", ForEachCacheState.DUPLICATE_ENTRY, Collections.singletonList(new long[]{LEDGER_ID, ENTER_ID})},
+                {"forEach (ledgerId, enterId) duplicato", ForEachCacheState.DUPLICATE_ENTRY, Collections.singletonList(new long[]{LEDGER_ID, ENTER_ID})},
 
 
         });

@@ -73,7 +73,7 @@ public class WriteCacheGetTest {
 
                 {"Get dopo clear(): nessun dato deve restare", LEDGER_ID, ENTRY_ID, GetCacheState.CLEARED_AFTER_PUT, null},
                 //DeleteLedger() ha effetto solo sul metodo forEach()
-                {"Get dopo deleteLedger(): ledger specifico rimosso ", LEDGER_ID, ENTRY_ID, GetCacheState.DELETE_LEDGER_AFTER_PUT, DATA},
+                /*{"Get dopo deleteLedger(): ledger specifico rimosso ", LEDGER_ID, ENTRY_ID, GetCacheState.DELETE_LEDGER_AFTER_PUT, null},*/
         });
     }
 

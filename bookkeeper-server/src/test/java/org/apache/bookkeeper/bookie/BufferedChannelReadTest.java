@@ -63,8 +63,8 @@ public class BufferedChannelReadTest {
                 //------INVALID INPUT TESTS---------
                 {"Read Test: Invalid pos", Unpooled.directBuffer(1024), -1, 1, IllegalArgumentException.class, FileStatus.READ_WRITE, Cases.DEFAULT },
                 {"Read Test: Null dest", null, 0, 1, NullPointerException.class, FileStatus.READ_WRITE, Cases.DEFAULT },
-
-                {"Read Test: invalid dest", Unpooled.buffer(0), 0, 1, IllegalArgumentException.class, FileStatus.READ_WRITE, Cases.DEFAULT },
+                {"Read Test: Invalid dest", deallocatedBuffer(), 0, 0, IllegalArgumentException.class, FileStatus.READ_WRITE, Cases.DEFAULT },
+                {"Read Test: dest with no capacity", Unpooled.buffer(0), 0, 1, IllegalArgumentException.class, FileStatus.READ_WRITE, Cases.DEFAULT },
 
                 // -----VALID INPUT TESTS--------
                 {"Read Test: invalid length", Unpooled.directBuffer(1024), 0, -1, 0, FileStatus.READ_WRITE, Cases.DEFAULT},
@@ -206,8 +206,15 @@ public class BufferedChannelReadTest {
         if (fileConstraints == FileStatus.NO_PERMISSION && originalPermissions != null) {
             Files.setPosixFilePermissions(PATH, originalPermissions);
         }
-        if (dest != null) {
+        if (dest != null && dest.refCnt()>0) {
             dest.release();
         }
+    }
+
+    private static ByteBuf deallocatedBuffer() {
+        ByteBuf buf = Unpooled.buffer(16);
+        buf.writeBytes(new byte[]{1, 2, 3, 4});
+        buf.release();  // Dealloca il buffer
+        return buf;
     }
 }

@@ -85,7 +85,7 @@ public class BufferedChannelCoverageTest {
 
         bufferedChannel.clear();
 
-        Mi aspettavo che clear resettasse anche getUnpersistedBytes, ma resetta solo il buffer
+        //Mi aspettavo che clear resettasse anche getUnpersistedBytes, ma resetta solo il buffer
         //Assert.assertEquals(0, bufferedChannel.getUnpersistedBytes());
         Assert.assertEquals(0, bufferedChannel.getNumOfBytesInWriteBuffer());
 
@@ -111,7 +111,7 @@ public class BufferedChannelCoverageTest {
         // Chiamo clear()
         bufferedChannel.clear();
 
-        // Verifico che il readBuffer sia svuotato
+        // Verifico che il readBuffer sia svuotatome
         Assert.assertEquals(0, bufferedChannel.readBuffer.readableBytes());
 
         // Verifico che anche il writeBuffer sia svuotato

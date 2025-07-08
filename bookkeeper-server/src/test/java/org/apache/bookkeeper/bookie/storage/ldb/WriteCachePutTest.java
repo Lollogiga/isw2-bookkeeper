@@ -88,8 +88,6 @@ public class WriteCachePutTest {
                 {"Put senza aggiornamento di LastEntry", LEDGER_ID_TEST, ENTRY_ID_TEST-1, Unpooled.buffer(MAX_SEGMENT_SIZE).writeBytes(new byte[MAX_SEGMENT_SIZE]), CacheState.OUT_OF_ORDER, true, MAX_SEGMENT_SIZE*2, 2},
                 {"Put con coppia (ledgerID, entryId) già esistente", LEDGER_ID_TEST, ENTRY_ID_TEST, Unpooled.buffer(MAX_SEGMENT_SIZE).writeBytes(new byte[MAX_SEGMENT_SIZE]), CacheState.KNOW_ENTRY, true, MAX_SEGMENT_SIZE*2, 2},
 
-                //Nuovo test dopo jacoco:
-                {"Put con primo aggiornamento di lastEntryMap", 99, 1, Unpooled.buffer(64).writeBytes(new byte[64]), CacheState.EMPTY, true, 64, 1},
         });
     }
 

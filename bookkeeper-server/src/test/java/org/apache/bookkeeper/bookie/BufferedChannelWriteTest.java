@@ -79,7 +79,7 @@ public class BufferedChannelWriteTest {
                 {"Buffer vuoto: scrittura su writeBuffer", Unpooled.copiedBuffer(new byte[128]), null, 0, null, FileStatus.READ_WRITE, false, false, 128, 128},
                 {"Buffer non vuoto, scrittura ancora su writeBuffer", Unpooled.copiedBuffer(new byte[256]), new byte[100], 0, null, FileStatus.READ_WRITE, false, false, 100 + 256, 100 + 256},
                 {"Src vuoto", Unpooled.EMPTY_BUFFER, new byte[100], 0, null, FileStatus.READ_WRITE, false, false, 100, 100},
-
+                {"Src deallocato", deallocatedBuffer(), new byte[0], 0, IndexOutOfBoundsException.class, FileStatus.READ_WRITE, false, false, 0, 0},
                 // --- CASI CHE CAUSANO FLUSH ---
                 {"Scrittura che riempie esattamente il buffer(inizialmente vuoto): chiamata flush()", Unpooled.copiedBuffer(new byte[CAPACITY]), null, 0, null, FileStatus.READ_WRITE, true, false, (long) CAPACITY, 0},
                 {"Scrittura che riempe esattamente il buffer(non vuoto): chiamata flush() e buffer vuoto", Unpooled.copiedBuffer(new byte[CAPACITY - 100]), new byte[100], 0, null, FileStatus.READ_WRITE, true, false, (long) CAPACITY, 0},
@@ -178,11 +178,20 @@ public class BufferedChannelWriteTest {
 
     @After
     public void tearDown() throws IOException {
-        if (src != null) {
+        //Modified for test Src deallocato
+        if (src != null && src.refCnt() > 0) {
             src.release();
         }
         if (bufferedChannel != null) {
             bufferedChannel.close(); // Questo chiude anche il FileChannel sottostante
         }
     }
+
+    private static ByteBuf deallocatedBuffer() {
+        ByteBuf buf = Unpooled.buffer(16);
+        buf.writeBytes(new byte[]{1, 2, 3, 4});
+        buf.release();  // Dealloca il buffer
+        return buf;
+    }
+
 }
