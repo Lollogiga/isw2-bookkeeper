@@ -1,36 +1,52 @@
-name: Java CI with Maven
+name: Java CI with Maven (JDK 8)
 
-# Eventi che attivano il workflow
 on:
   push:
     branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
 
+  workflow_dispatch:
+
 jobs:
-  build:
-    # Sistema operativo su cui eseguire il workflow
+  build-and-test:
+    name: Build, Test, JaCoCo & PIT
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Fa il "checkout" del tuo codice
-      - uses: actions/checkout@v4
+      # 1. Scarica il codice del tuo repository
+      - name: Checkout code
+        uses: actions/checkout@v4
 
+      # 2. Imposta l'ambiente con JDK 8
       - name: Set up JDK 8
         uses: actions/setup-java@v4
         with:
           java-version: '8'
           distribution: 'temurin'
+          # Gestisce la cache di Maven in modo automatico ed efficiente
+          cache: 'maven'
 
-      # 3. Esegue il build e i test con Maven
-      - name: Build and test with Maven
-        run: mvn -B package --file pom.xml
+      # 3. Esegue la build e genera i report
+      - name: Build project and generate reports
+        # ESEGUIAMO IL COMANDO DALLA ROOT DEL PROGETTO.
+        run: mvn -B clean verify --file pom.xml
 
-      # (Opzionale, ma utile) Cache delle dipendenze di Maven per velocizzare i build futuri
-      - name: Cache Maven packages
-        uses: actions/cache@v4
+      # 4. Carica il report di JaCoCo come artefatto
+      - name: Upload JaCoCo Report
+        uses: actions/upload-artifact@v4
         with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
+          name: jacoco-report
+          # Il percorso dove vengono generati i report di JaCoCo.
+          # Verifica che 'jacoco-manual' o 'jacoco' sia il nome corretto della cartella.
+          path: bookkeeper-server/target/site/jacoco-manual/
+          if-no-files-found: 'warn' # In caso di problemi, non fa fallire la build
+
+      # 5. Carica il report di PIT come artefatto
+      - name: Upload PIT Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: pit-report
+          # Il percorso standard per i report di PIT.
+          path: bookkeeper-server/target/pit-reports/
+          if-no-files-found: 'warn' # In caso di problemi, non fa fallire la build
