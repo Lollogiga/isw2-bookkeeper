@@ -5,7 +5,7 @@ on:
     branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
-
+  # Ti permette di avviare il workflow manualmente dalla UI di GitHub per fare dei test
   workflow_dispatch:
 
 jobs:
@@ -18,7 +18,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2. Imposta l'ambiente con JDK 8
+      # 2. Imposta l'ambiente con JDK 8, come richiesto
       - name: Set up JDK 8
         uses: actions/setup-java@v4
         with:
@@ -27,22 +27,27 @@ jobs:
           # Gestisce la cache di Maven in modo automatico ed efficiente
           cache: 'maven'
 
-      # 3. Esegue la build e genera i report
-      - name: Build project and generate reports
-        # ESEGUIAMO IL COMANDO DALLA ROOT DEL PROGETTO.
-        run: mvn -B clean verify --file pom.xml
+      # 3. Costruisce l'intero progetto e genera il report JaCoCo
+      - name: Build all modules and generate JaCoCo reports
+        run: mvn -B clean install --file pom.xml
 
-      # 4. Carica il report di JaCoCo come artefatto
+      # 4. Esegue PIT solo sul modulo bookkeeper-server
+      - name: Generate PIT report in bookkeeper-server
+        # Ora possiamo eseguire il comando per PIT dentro la cartella specifica.
+        # Maven troverà le altre dipendenze nel repository locale installate dallo step precedente.
+        run: mvn -B org.pitest:pitest-maven:mutationCoverage --file pom.xml
+        working-directory: bookkeeper-server
+
+      # 5. Carica il report di JaCoCo come artefatto
       - name: Upload JaCoCo Report
         uses: actions/upload-artifact@v4
         with:
           name: jacoco-report
           # Il percorso dove vengono generati i report di JaCoCo.
-          # Verifica che 'jacoco-manual' o 'jacoco' sia il nome corretto della cartella.
           path: bookkeeper-server/target/site/jacoco-manual/
           if-no-files-found: 'warn' # In caso di problemi, non fa fallire la build
 
-      # 5. Carica il report di PIT come artefatto
+      # 6. Carica il report di PIT come artefatto
       - name: Upload PIT Report
         uses: actions/upload-artifact@v4
         with:
